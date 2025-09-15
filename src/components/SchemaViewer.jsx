@@ -20,13 +20,13 @@ const SchemaViewer = () => {
       id: 'opencollection',
       name: 'OpenCollection Schema',
       description: 'Simple collection schema',
-      path: '/src/schemas/opencollection.schema.json'
+      path: '../schemas/opencollection.schema.json'
     },
     {
       id: 'sample',
       name: 'Sample Collection Schema',
       description: 'Sample collection schema',
-      path: '/src/schemas/sample.schema.json'
+      path: '../schemas/sample.schema.json'
     }
   ];
 
