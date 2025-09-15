@@ -1,9 +1,10 @@
-import React, { useState, useCallback, useEffect, useRef } from 'react';
-import { Upload, FileJson, Download, Copy, Check, AlertCircle, Code, Network, ChevronDown } from 'lucide-react';
+import React, { useState, useCallback, useEffect } from 'react';
+import { Upload, FileJson, Download, Copy, Check, AlertCircle, Code, Network } from 'lucide-react';
 import MonacoEditor from '@monaco-editor/react';
 import SchemaExplorer from './SchemaExplorer';
 import SchemaGraph from './SchemaGraph';
 import { parseSchema } from '../utils/schemaParser';
+import opencollectionSchema from '../schemas/opencollection.schema.json';
 
 const SchemaViewer = () => {
   const [schema, setSchema] = useState(null);
@@ -12,37 +13,8 @@ const SchemaViewer = () => {
   const [error, setError] = useState(null);
   const [copied, setCopied] = useState(false);
   const [jsonInput, setJsonInput] = useState('');
-  const [showSampleDropdown, setShowSampleDropdown] = useState(false);
-  const dropdownRef = useRef(null);
 
-  const sampleSchemas = [
-    {
-      id: 'opencollection',
-      name: 'OpenCollection Schema',
-      description: 'Simple collection schema',
-      path: '../schemas/opencollection.schema.json'
-    },
-    {
-      id: 'sample',
-      name: 'Sample Collection Schema',
-      description: 'Sample collection schema',
-      path: '../schemas/sample.schema.json'
-    }
-  ];
 
-  // Close dropdown when clicking outside
-  useEffect(() => {
-    const handleClickOutside = (event) => {
-      if (dropdownRef.current && !dropdownRef.current.contains(event.target)) {
-        setShowSampleDropdown(false);
-      }
-    };
-
-    document.addEventListener('mousedown', handleClickOutside);
-    return () => {
-      document.removeEventListener('mousedown', handleClickOutside);
-    };
-  }, []);
 
   const handleFileUpload = useCallback((event) => {
     const file = event.target.files[0];
@@ -110,19 +82,6 @@ const SchemaViewer = () => {
     }
   }, [schema]);
 
-  const loadExample = useCallback(async (schemaPath) => {
-    try {
-      const response = await fetch(schemaPath);
-      const data = await response.json();
-      setSchema(data);
-      setJsonInput(JSON.stringify(data, null, 2));
-      setError(null);
-      setShowSampleDropdown(false);
-    } catch (err) {
-      setError('Failed to load example schema');
-    }
-  }, []);
-
   useEffect(() => {
     if (schema) {
       try {
@@ -136,8 +95,14 @@ const SchemaViewer = () => {
 
   // Load opencollection schema by default on first mount
   useEffect(() => {
-    loadExample('/src/schemas/opencollection.schema.json');
-  }, [loadExample]);
+    try {
+      setSchema(opencollectionSchema);
+      setJsonInput(JSON.stringify(opencollectionSchema, null, 2));
+      setError(null);
+    } catch (err) {
+      setError('Failed to load opencollection schema');
+    }
+  }, []);
 
   return (
     <div className="h-screen flex flex-col bg-gray-50 dark:bg-gray-900">
@@ -150,31 +115,6 @@ const SchemaViewer = () => {
             </h1>
             
             <div className="flex items-center gap-2">
-              <div className="relative" ref={dropdownRef}>
-                <button
-                  onClick={() => setShowSampleDropdown(!showSampleDropdown)}
-                  className="px-3 py-1.5 text-base bg-gray-100 hover:bg-gray-200 rounded-lg transition-colors flex items-center gap-1"
-                >
-                  Load Example
-                  <ChevronDown className={`w-4 h-4 transition-transform ${showSampleDropdown ? 'rotate-180' : ''}`} />
-                </button>
-                
-                {showSampleDropdown && (
-                  <div className="absolute top-full left-0 mt-1 bg-white border border-gray-200 rounded-lg shadow-lg z-50 min-w-[250px]">
-                    {sampleSchemas.map((sample) => (
-                      <button
-                        key={sample.id}
-                        onClick={() => loadExample(sample.path)}
-                        className="w-full px-4 py-3 text-left hover:bg-gray-50 transition-colors first:rounded-t-lg last:rounded-b-lg border-b border-gray-100 last:border-b-0"
-                      >
-                        <div className="font-medium text-gray-900">{sample.name}</div>
-                        <div className="text-sm text-gray-500">{sample.description}</div>
-                      </button>
-                    ))}
-                  </div>
-                )}
-              </div>
-              
               <label className="px-3 py-1.5 text-base bg-blue-500 text-white hover:bg-blue-600 rounded-lg cursor-pointer transition-colors">
                 <input
                   type="file"
